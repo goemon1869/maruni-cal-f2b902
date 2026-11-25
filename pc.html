@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>マルニ カレンダー(パソコン用)</title>
+<link rel="icon" type="image/png" href="icon.png">
+<style>
+
+:root{--ink:#171717;--red:#d71021;--gray:#6e6e6e;--teal:#008080;--line:#404040;
+ --num:"Tw Cen MT Condensed Extra Bold","Tw Cen MT Condensed","Avenir Next Condensed","Arial Narrow",sans-serif;--numw:700}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:"Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;color:var(--ink);background:#fff;
+ display:flex;flex-direction:column;padding:1.2vh 1.6vw .8vh;overflow:hidden;min-width:760px;min-height:480px}
+header{display:flex;align-items:center;gap:1.2vw;flex:0 0 auto;padding-bottom:.8vh}
+.title{flex:1;text-align:center}
+.title span{display:inline-block;color:var(--teal);font:italic bold clamp(18px,3.2vh,32px) Helvetica,Arial,sans-serif;border-bottom:2px solid var(--teal);padding:0 4px 1px}
+.sum{font-size:clamp(13px,2vh,18px);white-space:nowrap}
+.sum b{font-size:1.25em}.sum .r{color:var(--red)}
+select,button{font:inherit;font-size:clamp(13px,1.9vh,17px);border:1px solid #bbb;background:#fff;border-radius:8px;padding:.35em .9em;color:var(--ink);cursor:pointer}
+button:hover{background:#f0f0f0}
+main{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);gap:1.2vh 1.5vw}
+.mon{display:flex;flex-direction:column;min-height:0;min-width:0}
+.mh{display:flex;align-items:baseline;gap:.4em;flex:0 0 auto;padding-bottom:.2vh}
+.mh .n{color:var(--gray);font-family:var(--num);font-weight:var(--numw);font-size:clamp(18px,3.6vh,36px);line-height:1}
+.mh .n i{font:normal .62em "MS Gothic","Hiragino Sans",sans-serif;margin-left:1px}
+.mh .c{margin-left:auto;font-size:clamp(10px,1.6vh,15px);color:var(--gray);white-space:nowrap}
+.g{display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:auto repeat(6,minmax(0,1fr));flex:1 1 auto;min-height:0;border-left:1px solid var(--line);border-top:1px solid var(--line)}
+.g>div{border-right:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center;min-height:0;overflow:hidden}
+.g .w{font:normal clamp(10px,1.55vh,14px) MWk,"Hiragino Sans","Yu Gothic UI",sans-serif;color:var(--gray);padding:.15em 0}
+.g .d{font-family:var(--num);font-weight:var(--numw);font-size:clamp(13px,min(1.55vw,3.15vh),32px);color:var(--ink);line-height:1}
+.g .d.h{color:var(--red)}
+.g .d.t span{display:inline-block;min-width:1.55em;border:2px solid var(--teal);border-radius:50%;line-height:1.3;text-align:center}
+footer{flex:0 0 auto;display:flex;align-items:center;gap:1em;padding-top:.8vh;font-size:clamp(11px,1.7vh,14px);color:var(--gray)}
+footer .sp{flex:1}
+footer .r{color:var(--red);font-weight:bold}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#3bb54a;margin-right:5px}
+.dot.off{background:#d33}
+a{color:var(--teal)}
+@media print{
+ @page{size:A4 landscape;margin:8mm}
+ .noprint{display:none!important}
+ body{height:190mm;min-width:0;overflow:visible;padding:0}
+}
+</style></head><body class="cloud">
+<header>
+  <select id="ysel" class="noprint"></select>
+  <div class="title"><span id="title">&nbsp;</span></div>
+  <div class="sum" id="sum"></div>
+  <button id="pr" class="noprint">印刷</button>
+</header>
+<main id="main"></main>
+<footer>
+  <span><span class="r">赤い日</span> = 休日 / 黒い日 = 稼働日 / 青緑の丸 = 今日</span>
+  <span class="sp"></span>
+  <span class="noprint"><span class="dot" id="dot"></span><span id="stat">読み込み中…</span></span>
+  <button id="rf" class="noprint">いま更新する</button>
+  <a class="noprint" href="index.html#sp">スマホ用の表示</a>
+</footer>
+<script>
+var WK='日月火水木金土', S=null, Y=null, userY=false;
+function $(i){return document.getElementById(i)}
+function pad(n){return (n<10?'0':'')+n}
+function key(y,m,d){return y+'-'+pad(m)+'-'+pad(d)}
+function dim(y,m){return new Date(y,m,0).getDate()}
+function wk1(y,m){return new Date(y,m-1,1).getDay()}
+var T=new Date(), TK=key(T.getFullYear(),T.getMonth()+1,T.getDate());
+function monthTable(y,m,hs){
+  var h='<div class="g">'+WK.split('').map(function(w){return '<div class="w">'+w+'</div>'}).join('');
+  var col=wk1(y,m), n=dim(y,m);
+  for(var i=0;i<42;i++){
+    var d=i-col+1;
+    if(d<1||d>n){h+='<div class="d"></div>';continue}
+    var k=key(y,m,d), cl=(hs.has(k)?'h ':'')+(k===TK?'t':'');
+    h+='<div class="d '+cl+'"><span>'+d+'</span></div>';
+  }
+  return h+'</div>';
+}
+function render(){
+  if(!S||!S.years[Y])return;
+  var ys=Object.keys(S.years), sel=$('ysel');
+  sel.innerHTML=ys.map(function(y){return '<option value="'+y+'"'+(String(y)===String(Y)?' selected':'')+'>'+y+'年</option>'}).join('');
+  sel.style.visibility=ys.length>1?'visible':'hidden';
+  $('title').textContent=S.years[Y].title||'';
+  var hs=new Set(S.years[Y].holidays), h='', tw=0, th=0;
+  for(var m=1;m<=12;m++){
+    var n=dim(Y,m), hh=0; for(var d=1;d<=n;d++) if(hs.has(key(Y,m,d))) hh++;
+    tw+=n-hh; th+=hh;
+    h+='<div class="mon"><div class="mh"><span class="n">'+m+'<i>月</i></span><span class="c">稼働 '+(n-hh)+'日 / 休日 '+hh+'日</span></div>'+monthTable(Y,m,hs)+'</div>';
+  }
+  $('main').innerHTML=h;
+  $('sum').innerHTML=Y+'年 年間:稼働日 <b>'+tw+'</b>日 / 休日 <b class="r">'+th+'</b>日';
+  document.title=(S.years[Y].title||'マルニ カレンダー');
+}
+function poll(){
+  fetch('state.json?'+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
+    var first=!S, prevCur=S?String(S.current):null; S=j;
+    if(first){var ty=String(T.getFullYear()); Y=S.years[ty]?ty:String(j.current||Object.keys(S.years)[0])}
+    else if(!userY&&prevCur!==String(j.current)&&S.years[j.current]) Y=String(j.current);
+    if(!S.years[Y]) Y=String(j.current);
+    render(); $('dot').className='dot';
+    $('stat').textContent='最新の状態です('+pad(new Date().getHours())+':'+pad(new Date().getMinutes())+' 確認)';
+  }).catch(function(){ $('dot').className='dot off'; $('stat').textContent='つながりません(ネットの状態を確認してください)' });
+}
+$('ysel').onchange=function(){Y=this.value;userY=true;render()};
+$('rf').onclick=function(){$('stat').textContent='確認しています…';poll()};
+$('pr').onclick=function(){window.print()};
+document.addEventListener('visibilitychange',function(){if(!document.hidden)poll()});
+poll();
+</script></body></html>
