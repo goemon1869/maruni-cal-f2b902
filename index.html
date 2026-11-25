@@ -44,6 +44,8 @@ td.t span{display:inline-block;min-width:1.5em;border:2px solid var(--teal);bord
 .mini td{height:auto;max-height:none;font-size:14px;line-height:1.5}
 .mini td.t span{border-width:1.5px;min-width:1.3em;line-height:1.2}
 .foot{display:flex;align-items:center;gap:6px;justify-content:center;color:#777;font-size:12px;padding:8px 0 20px}
+.rfw{text-align:center;padding:0 0 26px}
+.rfw button{font-size:14px;padding:8px 18px}
 .dot{width:9px;height:9px;border-radius:50%;background:#3bb54a}
 .dot.off{background:#d33}
 body.cloud td,body.cloud .mhead .m,body.cloud .mini .n{font-family:"Avenir Next Condensed","Arial Narrow","Helvetica Neue",sans-serif;font-weight:700}
@@ -58,6 +60,7 @@ body.cloud .mhead .m i,body.cloud .mini .n i{font-family:-apple-system,"Hiragino
 <div id="main"></div>
 <div class="legend"><span class="r">赤い日</span> = 休日 / 黒い日 = 稼働日 / 青緑の丸 = 今日</div>
 <div class="foot"><span class="dot" id="dot"></span><span id="stat">読み込み中…</span></div>
+<div class="rfw"><button id="rf">いま更新する</button></div>
 <script>
 var WK='日月火水木金土', S=null, Y=null, M=1, view='month', userY=false;
 function $(i){return document.getElementById(i)}
@@ -123,7 +126,7 @@ function poll(){
     if(!S.years[Y]) Y=String(j.current);
     if(changed) render();
     $('dot').className='dot';
-    $('stat').textContent='自動更新中('+pad(new Date().getHours())+':'+pad(new Date().getMinutes())+' 確認)';
+    $('stat').textContent='最新の状態です('+pad(new Date().getHours())+':'+pad(new Date().getMinutes())+' 確認)';
   }).catch(function(){
     $('dot').className='dot off';
     $('stat').textContent='つながりません(電波・ネットの状態を確認してください)';
@@ -140,5 +143,7 @@ document.addEventListener('touchend',function(e){
   if(Math.abs(dx)>70)go(dx<0?1:-1);
 },{passive:true});
 document.addEventListener('visibilitychange',function(){if(!document.hidden)poll()});
-poll(); setInterval(poll,4000);
+window.addEventListener('pageshow',function(e){if(e.persisted)poll()});
+$('rf').onclick=function(){$('stat').textContent='確認しています…';poll()};
+poll();
 </script></body></html>
